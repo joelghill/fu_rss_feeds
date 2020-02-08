@@ -11,5 +11,5 @@ class InitFeedTestCase(TestCase):
     def test_init_feed(self):
         """ Create a feed instance and verify correct initialization
         """
-        feed = Feed.objects.create()
+        feed = Feed.objects.create(url='https://www.xkcd.com/rss.xml')
         self.assertIsNotNone(feed)
