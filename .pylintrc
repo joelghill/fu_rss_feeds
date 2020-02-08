@@ -11,7 +11,8 @@ ignore=CVS,
         __init__.py,
         .pylintrc,
         local_settings.py,
-        apps.py
+        apps.py,
+        .pyenv/
 
 # Add files or directories matching the regex patterns to the blacklist. The
 # regex matches against base names, not paths.
