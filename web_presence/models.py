@@ -23,5 +23,6 @@ class WebIdentity(models.Model):
     """
     public_name = models.CharField(name="Name", max_length=200, blank=False, null=False)
     about = models.TextField(name="About", blank=True)
+    email = models.EmailField(blank=True)
     homepage = models.URLField(name="Homepage", blank=True, null=True)
     social = models.ManyToManyField(SocialMediaEndpoint, related_name="identities")
