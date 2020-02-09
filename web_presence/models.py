@@ -1,7 +1,6 @@
 """ Module containing models representing a person's erb presence
 """
 from django.db import models
-from fontawesome.fields import IconField
 
 
 class SocialMediaType(models.Model):
@@ -9,7 +8,8 @@ class SocialMediaType(models.Model):
     """
     code = models.CharField(max_length=150, primary_key=True, unique=True, blank=False, null=False)
     domain = models.URLField(name='Website', blank=False, null=False)
-    icon = IconField(name='Icon', blank=True)
+    # font awesome icon name. Ex: twitter
+    icon = models.CharField(max_length=100, blank=True)
 
 
 class SocialMediaEndpoint(models.Model):
@@ -17,7 +17,6 @@ class SocialMediaEndpoint(models.Model):
     """
     type = models.ForeignKey(SocialMediaType, on_delete=models.CASCADE, related_name='endpoints')
     url = models.URLField(name='url', blank=False)
-
 
 class WebIdentity(models.Model):
     """ A model representing the web identity of a person

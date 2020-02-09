@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import fontawesome.fields
 
 
 class Migration(migrations.Migration):
@@ -25,7 +24,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('code', models.CharField(max_length=150, primary_key=True, serialize=False, unique=True)),
                 ('Website', models.URLField()),
-                ('Icon', fontawesome.fields.IconField(blank=True, max_length=60)),
             ],
         ),
         migrations.CreateModel(
