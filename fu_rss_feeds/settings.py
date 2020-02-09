@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'rss.apps.RssConfig',
-    'web_presence.apps.WebPresenceConfig'
+    'web_presence.apps.WebPresenceConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
