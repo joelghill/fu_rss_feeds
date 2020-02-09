@@ -91,3 +91,4 @@ db.sqlite3
 
 .python-version
 .vscode/settings.json
+.vscode
