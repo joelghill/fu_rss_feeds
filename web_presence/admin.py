@@ -1,3 +1,5 @@
+""" Module for admin settings
+"""
 from django.contrib import admin
 from web_presence.models import SocialMediaType, SocialMediaEndpoint, WebIdentity
 
