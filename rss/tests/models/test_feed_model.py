@@ -21,9 +21,12 @@ class InitFeedTestCase(TestCase):
         self.assertIsNotNone(feed)
         feed.update()
 
+        self.assertIsNotNone(feed)
+
     def test_fu_politics_update_feed(self):
         """ Create a feed instance and verify correct initialization
         """
         feed = Feed.objects.create(source='https://feed.podbean.com/fupolitics/feed.xml')
         self.assertIsNotNone(feed)
         feed.update()
+        self.assertIsNotNone(feed)

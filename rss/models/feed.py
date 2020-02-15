@@ -1,9 +1,12 @@
 """ Module containing the Feed model and supporting classes
 """
+from datetime import datetime
+from time import mktime
 from django.db import models
 import feedparser
-from .pen_name import PenName
 
+from .entry import FeedEntry
+from .pen_name import PenName
 
 
 class FeedImage(models.Model):
@@ -12,7 +15,7 @@ class FeedImage(models.Model):
     # Alt attribute
     title = models.CharField(max_length=200, blank=True)
     # Title attribute, rare
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
 
     src = models.URLField(name='src', blank=True)
     link = models.URLField(name='image_link', blank=True)
@@ -46,11 +49,11 @@ class Feed(models.Model):
     """ Model representing an RSS feed
     """
     # The location of the feed. Web URL or local filepath
-    source = models.CharField(max_length=200, blank=False, null=False)
+    source = models.TextField(blank=False, null=False)
 
     feed_id = models.UUIDField(blank=True, null=True)
-    title = models.CharField(max_length=100, blank=True)
-    subtitle = models.CharField(max_length=200, blank=True)
+    title = models.TextField(blank=True)
+    subtitle = models.TextField(blank=True)
     description = models.TextField(name='description', blank=True)
     license_link = models.URLField(name='license', blank=True)
     homepage = models.URLField(name='home', blank=True)
@@ -63,7 +66,7 @@ class Feed(models.Model):
 
     author = models.ForeignKey(PenName, related_name='feeds', null=True, on_delete=models.SET_NULL)
     publisher = models.ForeignKey(PenName, related_name='publications', null=True, on_delete=models.SET_NULL)
-    contributors = models.ManyToManyField(PenName, blank=True, null=True, related_name='feed_contributions')
+    contributors = models.ManyToManyField(PenName, blank=True, related_name='feed_contributions')
 
     etag = models.CharField(max_length=200, name='etag', blank=True, null=True, editable=False)
     last_modified = models.DateTimeField(blank=True, null=True, editable=False)
@@ -89,7 +92,11 @@ class Feed(models.Model):
         self.description = response.feed.get('info', None)
         self.license_link = response.feed.get('license', None)
         self.homepage = response.feed.get('link', None)
-        self.published_date = response.feed.get('published_parsed', None)
+
+        published_data = response.feed.get('published_parsed', None)
+        if published_data:
+            self.published_date = datetime.fromtimestamp(mktime(published_data))
+
         self.copyright_raw = response.feed.get('rights', None)
 
         self.icon = response.feed.get('icon', None)
@@ -120,4 +127,6 @@ class Feed(models.Model):
 
 
     def update_entries(self, raw_entries):
-        pass
+        for raw_entry in raw_entries:
+            entry = FeedEntry.from_parsed(self, raw_entry)
+            entry.save()
