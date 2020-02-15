@@ -1,0 +1,44 @@
+<rss version="2.0">
+    <channel>
+        <title>xkcd.com</title>
+        <link>https://xkcd.com/</link>
+        <description>xkcd.com: A webcomic of romance and math humor.</description>
+        <language>en</language>
+        <item>
+            <title>Tax AI</title>
+            <link>https://xkcd.com/2265/</link>
+            <description>
+                <img src="https://imgs.xkcd.com/comics/tax_ai.png" title="I ended up getting my tax return prepared at a local place by a really friendly pretrained neural net named Greg." alt="I ended up getting my tax return prepared at a local place by a really friendly pretrained neural net named Greg." />
+            </description>
+            <pubDate>Fri, 07 Feb 2020 05:00:00 -0000</pubDate>
+            <guid>https://xkcd.com/2265/</guid>
+        </item>
+        <item>
+            <title>Satellite</title>
+            <link>https://xkcd.com/2264/</link>
+            <description>
+                <img src="https://imgs.xkcd.com/comics/satellite.png" title="If you're going to let it burn up, make sure it happens over the deep end of the bathtub and not any populated parts of the house!" alt="If you're going to let it burn up, make sure it happens over the deep end of the bathtub and not any populated parts of the house!" />
+            </description>
+            <pubDate>Wed, 05 Feb 2020 05:00:00 -0000</pubDate>
+            <guid>https://xkcd.com/2264/</guid>
+        </item>
+        <item>
+            <title>Cicadas</title>
+            <link>https://xkcd.com/2263/</link>
+            <description>
+                <img src="https://imgs.xkcd.com/comics/cicadas.png" title="After a while you adjust to the new cicadian rhythm." alt="After a while you adjust to the new cicadian rhythm." />
+            </description>
+            <pubDate>Mon, 03 Feb 2020 05:00:00 -0000</pubDate>
+            <guid>https://xkcd.com/2263/</guid>
+        </item>
+        <item>
+            <title>Parker Solar Probe</title>
+            <link>https://xkcd.com/2262/</link>
+            <description>
+                <img src="https://imgs.xkcd.com/comics/parker_solar_probe.png" title="It will get within 9 or 10 Sun-diameters of the &quot;bottom&quot; (the Sun's surface) which seems pretty far when you put it that way, but from up here on Earth it's practically all the way down." alt="It will get within 9 or 10 Sun-diameters of the &quot;bottom&quot; (the Sun's surface) which seems pretty far when you put it that way, but from up here on Earth it's practically all the way down." />
+            </description>
+            <pubDate>Fri, 31 Jan 2020 05:00:00 -0000</pubDate>
+            <guid>https://xkcd.com/2262/</guid>
+        </item>
+    </channel>
+</rss>
