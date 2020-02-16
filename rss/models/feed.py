@@ -3,7 +3,7 @@
 from datetime import datetime
 from time import mktime
 from django.db import models
-import feedparser
+from django.core.exceptions import ObjectDoesNotExist
 
 from .entry import FeedEntry
 from .pen_name import PenName
@@ -26,7 +26,7 @@ class FeedImage(models.Model):
 
     @staticmethod
     def get_or_create(feed_image):
-        """ Gets or creates a feed image instance 
+        """ Gets or creates a feed image instance
         :param feed_image: Object containing parameters for a feed image
         :type feed_image: dict
         :return: A new or found instance of a feed image
@@ -71,49 +71,60 @@ class Feed(models.Model):
     etag = models.CharField(max_length=200, name='etag', blank=True, null=True, editable=False)
     last_modified = models.DateTimeField(blank=True, null=True, editable=False)
 
-    def update(self) -> None:
-        """ Queries the feed source and updates the feed and feed entries
+    def update(self, feed: dict, entries: list, modified=None, etag=None) -> None:
+        """ Updates the feed with feed data, entries, last modified date, and etag
+        
+        :param feed: The feed data to apply to the feed
+        :type feed: dict
+        :param entries: List of entries to add to the feed
+        :type entries: list
+        :param modified: Last modified date string, defaults to None
+        :type modified: str, optional
+        :param etag: Most recent eTag of the feed, defaults to None
+        :type etag: str, optional
         """
 
-        response = feedparser.parse(self.source, etag=self.etag, modified=self.last_modified)
+        if modified and self.last_modified != modified:
+            self.last_modified = modified
+        if etag and self.etag != etag:
+            self.etag = etag
 
-        if response.status == 304:
-            print("No changes")
-            return
+        self.update_feed(feed)
+        self.update_entries(entries)
 
-        if hasattr(response, 'modified') and response.modified:
-            self.last_modified = response.modified
-        if hasattr(response, 'etag') and response.etag:
-            self.etag = response.etag
+    def update_feed(self, raw_feed: dict):
+        """ Updates the feed entry from raw feed data
+        :param raw_feed: Raw feed data
+        :type raw_feed: dict
+        """
+        self.feed_id = raw_feed.get('id', None)
+        self.title = raw_feed.get('title', None)
+        self.subtitle = raw_feed.get('subtitle', None)
+        self.description = raw_feed.get('info', None)
+        self.license_link = raw_feed.get('license', None)
+        self.homepage = raw_feed.get('link', None)
 
-        self.feed_id = response.feed.get('id', None)
-        self.title = response.feed.get('title', None)
-        self.subtitle = response.feed.get('subtitle', None)
-        self.description = response.feed.get('info', None)
-        self.license_link = response.feed.get('license', None)
-        self.homepage = response.feed.get('link', None)
-
-        published_data = response.feed.get('published_parsed', None)
+        published_data = raw_feed.get('published_parsed', None)
         if published_data:
             self.published_date = datetime.fromtimestamp(mktime(published_data))
 
-        self.copyright_raw = response.feed.get('rights', None)
+        self.copyright_raw = raw_feed.get('rights', None)
 
-        self.icon = response.feed.get('icon', None)
-        self.image = FeedImage.get_or_create(response.feed.get('image', None))
-        self.logo = response.feed.get('logo', None)
+        self.icon = raw_feed.get('icon', None)
+        self.image = FeedImage.get_or_create(raw_feed.get('image', None))
+        self.logo = raw_feed.get('logo', None)
 
-        author_detail = response.feed.get('author_detail', None)
+        author_detail = raw_feed.get('author_detail', None)
         if author_detail:
             self.author, _ = PenName.objects.get_or_create(name=author_detail['name'], email=author_detail['email'])
 
-        publisher_detail = response.feed.get('publisher_detail', None)
+        publisher_detail = raw_feed.get('publisher_detail', None)
         if publisher_detail:
             self.publisher, _ = PenName.objects.get_or_create(
                 name=publisher_detail['name'],
                 email=publisher_detail['email'])
 
-        contributors = response.feed.get('contributors', None)
+        contributors = raw_feed.get('contributors', None)
         if contributors:
             for contributor_detail in contributors:
                 contributor, _ = PenName.objects.get_or_create(
@@ -123,10 +134,19 @@ class Feed(models.Model):
                 if contributor not in self.contributors:
                     self.contributors.add(contributor)
 
-        self.update_entries(response.entries)
+    def update_entries(self, raw_entries: list) -> None:
+        """ Adds entries that have not yet been associated with this feed
 
-
-    def update_entries(self, raw_entries):
+        :param raw_entries: A list of entries to add to the feed
+        :type raw_entries: list
+        """
         for raw_entry in raw_entries:
-            entry = FeedEntry.from_parsed(self, raw_entry)
-            entry.save()
+            raw_title = raw_entry.get('title', None)
+
+            try:
+                FeedEntry.objects.get(source=self, title=raw_title)
+                continue
+            except ObjectDoesNotExist:
+                entry = FeedEntry.from_parsed(raw_entry)
+                entry.source = self
+                entry.save()

@@ -21,7 +21,7 @@ class FeedEntry(models.Model):
     contributors = models.ManyToManyField(PenName, blank=True, related_name='entry_contributions')
 
     link = models.URLField(name='link', blank=True)
-    license_link = models.URLField(name='license', blank=True, null=True)
+    license = models.URLField(name='license', blank=True, null=True)
 
     published = models.DateTimeField(name='published', null=True)
     created = models.DateTimeField(name='created', null=True)
@@ -33,18 +33,16 @@ class FeedEntry(models.Model):
         unique_together = [['title', 'source']]
 
     @staticmethod
-    def from_parsed(source, parsed_entry):
+    def from_parsed(parsed_entry: dict):
         """ Generates a feed entry with the provided data
 
-        :param source: The source feed for this entry
-        :type source: [Feed
         :param parsed_entry: Parsed entry data
         :type parsed_entry: dict
         :return: A newly instantiated instance of a FeedEntry
         :rtype: FeedEntry
         """
         title = parsed_entry.get('title', None)
-        entry, _ = FeedEntry.objects.get_or_create(source=source, title=title)
+        entry = FeedEntry(title=title)
 
         entry.entry_id = parsed_entry.get('id', None)
 
@@ -68,7 +66,7 @@ class FeedEntry(models.Model):
                     email=contributor_detail.get('email', None))
 
                 if contributor not in entry.contributors:
-                    entry.add(contributor)
+                    entry.contributors.add(contributor)
 
         entry.link = parsed_entry.get('link', None)
         entry.license = parsed_entry.get('license', None)
