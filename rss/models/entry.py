@@ -13,21 +13,22 @@ class FeedEntry(models.Model):
     """
     # The location of the feed. Web URL or local filepath
     source = models.ForeignKey('Feed', on_delete=models.CASCADE, related_name='entries')
-    title = models.TextField(blank=True)
-    entry_id = models.TextField(blank=True, null=True)
+    title = models.CharField(max_length=250, blank=True)
+    entry_id = models.CharField(max_length=250, blank=True, null=True)
 
-    author = models.ForeignKey(PenName, related_name='entries', null=True, on_delete=models.SET_NULL)
-    publisher = models.ForeignKey(PenName, related_name='entry_publications', null=True, on_delete=models.SET_NULL)
+    author = models.ForeignKey(PenName, related_name='entries', blank=True, null=True, on_delete=models.SET_NULL)
+    publisher = models.ForeignKey(
+        PenName, related_name='entry_publications', blank=True, null=True, on_delete=models.SET_NULL)
     contributors = models.ManyToManyField(PenName, blank=True, related_name='entry_contributions')
 
-    link = models.URLField(name='link', blank=True)
+    link = models.URLField(name='link', blank=True, null=True)
     license = models.URLField(name='license', blank=True, null=True)
 
-    published = models.DateTimeField(name='published', null=True)
-    created = models.DateTimeField(name='created', null=True)
-    updated = models.DateTimeField(name='updated', null=True)
+    published = models.DateTimeField(name='published', blank=True, null=True)
+    created = models.DateTimeField(name='created', blank=True, null=True)
+    updated = models.DateTimeField(name='updated', blank=True, null=True)
 
-    comments = models.URLField(name='comments', blank=True)
+    comments = models.URLField(name='comments', blank=True, null=True)
 
     class Meta:
         unique_together = [['title', 'source']]
@@ -104,7 +105,7 @@ class EntryContent(models.Model):
     """ Content associated with a feed entry
     """
     base = models.URLField(name='base', blank=True, null=True)
-    language = models.TextField(name='language', blank=True, null=True)
+    language = models.CharField(max_length=250, name='language', blank=True, null=True)
     value = models.TextField(name='value', blank=True, null=True)
-    content_type = models.TextField(name='type', blank=True, null=True)
+    content_type = models.CharField(max_length=80, name='type', blank=True, null=True)
     entry = models.ForeignKey(FeedEntry, on_delete=models.CASCADE, related_name='content')

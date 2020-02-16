@@ -6,6 +6,8 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
+from rss.utils import feed_date_to_datetime
+
 from .entry import FeedEntry
 from .pen_name import PenName
 
@@ -19,7 +21,7 @@ class FeedImage(models.Model):
     description = models.TextField(blank=True, null=True)
 
     src = models.URLField(name='src', blank=True)
-    link = models.URLField(name='image_link', blank=True)
+    image_link = models.URLField(name='image_link', blank=True)
 
     # Image properties
     width = models.IntegerField(editable=False)
@@ -40,6 +42,7 @@ class FeedImage(models.Model):
             title=feed_image.get('title', None),
             description=feed_image.get('description', None),
             src=feed_image.get('link', None),
+            image_link=feed_image.get('href', None),
             width=feed_image.get('width', None),
             height=feed_image.get('height', None))
 
@@ -50,27 +53,29 @@ class Feed(models.Model):
     """ Model representing an RSS feed
     """
     # The location of the feed. Web URL or local filepath
-    source = models.TextField(blank=False, null=False)
+    source = models.CharField(max_length=250, blank=False, null=False)
 
     feed_id = models.UUIDField(blank=True, null=True)
-    title = models.TextField(blank=True)
-    subtitle = models.TextField(blank=True)
-    description = models.TextField(name='description', blank=True)
-    license_link = models.URLField(name='license', blank=True)
-    homepage = models.URLField(name='home', blank=True)
-    published_date = models.DateTimeField(name='published', null=True)
-    copyright_raw = models.TextField(name='copywrite', blank=True)
+    title = models.CharField(max_length=250, blank=True)
+    subtitle = models.CharField(max_length=250, blank=True, null=True)
+    description = models.TextField(name='description', blank=True, null=True)
+    license_link = models.URLField(name='license', blank=True, null=True)
+    homepage = models.URLField(name='home', blank=True, null=True)
+    published_date = models.DateTimeField(name='published', blank=True, null=True)
+    copyright_raw = models.CharField(max_length=250, name='copywrite', blank=True, null=True)
 
-    icon = models.URLField(name='icon', blank=True)
-    image = models.ForeignKey(FeedImage, name='Image', related_name='feed', null=True, on_delete=models.SET_NULL)
-    logo = models.URLField(name='logo', blank=True)
+    icon = models.URLField(name='icon', blank=True, null=True)
+    image = models.ForeignKey(FeedImage, related_name='feed', blank=True, null=True, on_delete=models.SET_NULL)
+    logo = models.URLField(name='logo', blank=True, null=True)
 
-    author = models.ForeignKey(PenName, related_name='feeds', null=True, on_delete=models.SET_NULL)
-    publisher = models.ForeignKey(PenName, related_name='publications', null=True, on_delete=models.SET_NULL)
+    author = models.ForeignKey(PenName, related_name='feeds', blank=True, null=True, on_delete=models.SET_NULL)
+    publisher = models.ForeignKey(
+        PenName, related_name='publications', blank=True, null=True, on_delete=models.SET_NULL)
     contributors = models.ManyToManyField(PenName, blank=True, related_name='feed_contributions')
 
-    etag = models.CharField(max_length=200, name='etag', blank=True, null=True, editable=False)
-    last_modified = models.DateTimeField(blank=True, null=True, editable=False)
+    etag = models.CharField(max_length=250, name='etag', blank=True, null=True, editable=False)
+    last_modified = models.CharField(max_length=120, blank=True, null=True, editable=False)
+    last_synced = models.DateTimeField(blank=True, null=True, editable=False)
 
     def update(self, feed: dict, entries: list, modified=None, etag=None) -> None:
         """ Updates the feed with feed data, entries, last modified date, and etag
@@ -92,6 +97,8 @@ class Feed(models.Model):
 
         self.update_feed(feed)
         self.update_entries(entries)
+        self.last_synced = timezone.now()
+        self.save()
 
     def update_feed(self, raw_feed: dict):
         """ Updates the feed entry from raw feed data
@@ -101,13 +108,11 @@ class Feed(models.Model):
         self.feed_id = raw_feed.get('id', None)
         self.title = raw_feed.get('title', None)
         self.subtitle = raw_feed.get('subtitle', None)
-        self.description = raw_feed.get('info', None)
+        self.description = raw_feed.get('summary', None)
         self.license_link = raw_feed.get('license', None)
         self.homepage = raw_feed.get('link', None)
 
-        published_data = raw_feed.get('published_parsed', None)
-        if published_data:
-            self.published_date = datetime.fromtimestamp(mktime(published_data))
+        self.published_date = feed_date_to_datetime(raw_feed.get('published_parsed', None))
 
         self.copyright_raw = raw_feed.get('rights', None)
 
@@ -146,7 +151,7 @@ class Feed(models.Model):
         for raw_entry in raw_entries:
 
             published_data = raw_entry.get('published_parsed', None)
-            published_datetime = datetime.fromtimestamp(mktime(published_data), tz=timezone.get_current_timezone())
+            published_datetime = feed_date_to_datetime(published_data)
 
             # If the latest entry exists and has a greater published date then stop adding entries
             if latest_entry and published_datetime and published_datetime <= latest_published_date:
