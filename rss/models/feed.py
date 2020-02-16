@@ -4,6 +4,7 @@ from datetime import datetime
 from time import mktime
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from .entry import FeedEntry
 from .pen_name import PenName
@@ -73,7 +74,7 @@ class Feed(models.Model):
 
     def update(self, feed: dict, entries: list, modified=None, etag=None) -> None:
         """ Updates the feed with feed data, entries, last modified date, and etag
-        
+
         :param feed: The feed data to apply to the feed
         :type feed: dict
         :param entries: List of entries to add to the feed
@@ -140,13 +141,20 @@ class Feed(models.Model):
         :param raw_entries: A list of entries to add to the feed
         :type raw_entries: list
         """
+        latest_entry = self.entries.order_by('-published').first()
+        latest_published_date = latest_entry.published if latest_entry else None
         for raw_entry in raw_entries:
-            raw_title = raw_entry.get('title', None)
 
+            published_data = raw_entry.get('published_parsed', None)
+            published_datetime = datetime.fromtimestamp(mktime(published_data), tz=timezone.get_current_timezone())
+
+            # If the latest entry exists and has a greater published date then stop adding entries
+            if latest_entry and published_datetime and published_datetime <= latest_published_date:
+                break
+
+            raw_title = raw_entry.get('title', None)
             try:
                 FeedEntry.objects.get(source=self, title=raw_title)
-                continue
+                break
             except ObjectDoesNotExist:
-                entry = FeedEntry.from_parsed(raw_entry)
-                entry.source = self
-                entry.save()
+                FeedEntry.from_parsed(self, raw_entry)

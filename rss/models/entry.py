@@ -33,16 +33,19 @@ class FeedEntry(models.Model):
         unique_together = [['title', 'source']]
 
     @staticmethod
-    def from_parsed(parsed_entry: dict):
+    def from_parsed(source, parsed_entry: dict):
         """ Generates a feed entry with the provided data
-
+        :param parsed_entry: The source feed for this entry
+        :type parsed_entry: Feed
         :param parsed_entry: Parsed entry data
         :type parsed_entry: dict
         :return: A newly instantiated instance of a FeedEntry
         :rtype: FeedEntry
         """
         title = parsed_entry.get('title', None)
-        entry = FeedEntry(title=title)
+        entry, created = FeedEntry.objects.get_or_create(source=source, title=title)
+        if not created:
+            return entry
 
         entry.entry_id = parsed_entry.get('id', None)
 

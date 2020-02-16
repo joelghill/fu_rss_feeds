@@ -2,6 +2,7 @@
 """
 from django.test import TestCase
 from rss.models.feed import Feed
+from rss.remote import FeedUpdater
 
 
 class InitFeedTestCase(TestCase):
@@ -19,14 +20,13 @@ class InitFeedTestCase(TestCase):
         """
         feed = Feed.objects.create(source='https://www.penny-arcade.com/feed')
         self.assertIsNotNone(feed)
-        feed.update()
-
-        self.assertIsNotNone(feed)
 
     def test_fu_politics_update_feed(self):
         """ Create a feed instance and verify correct initialization
         """
         feed = Feed.objects.create(source='https://feed.podbean.com/fupolitics/feed.xml')
-        self.assertIsNotNone(feed)
-        feed.update()
-        self.assertIsNotNone(feed)
+        FeedUpdater.update_from_source(feed)
+
+        count = feed.entries.count()
+        FeedUpdater.update_from_source(feed)
+        self.assertEqual(count, feed.entries.count())
