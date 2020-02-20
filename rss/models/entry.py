@@ -2,7 +2,7 @@
 """
 from django.db import models
 
-from utils import feed_date_to_datetime
+from rss.utils import feed_date_to_datetime
 from .pen_name import PenName
 
 
