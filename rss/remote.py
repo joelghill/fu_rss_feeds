@@ -21,6 +21,7 @@ class FeedUpdater:
         if response.status == 304:
             feed.last_synced = timezone.now()
             feed.save()
+            return
 
         feed.update(
             response.feed,
