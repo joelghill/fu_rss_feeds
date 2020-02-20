@@ -1,7 +1,5 @@
 """ Module containing the Feed model and supporting classes
 """
-from datetime import datetime
-from time import mktime
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone

@@ -1,11 +1,10 @@
 """ Module containing the Pen Name model and supporting code
 """
-from datetime import datetime
-from time import mktime
-
 from django.db import models
 
+from utils import feed_date_to_datetime
 from .pen_name import PenName
+
 
 
 class FeedEntry(models.Model):
@@ -87,15 +86,15 @@ class FeedEntry(models.Model):
 
         published_data = parsed_entry.get('published_parsed', None)
         if published_data:
-            entry.published = datetime.fromtimestamp(mktime(published_data))
+            entry.published = feed_date_to_datetime(published_data)
 
         created_data = parsed_entry.get('created_parsed', None)
         if created_data:
-            entry.created = datetime.fromtimestamp(mktime(created_data))
+            entry.created = feed_date_to_datetime(created_data)
 
         updated_data = parsed_entry.get('updated_parsed', None)
         if updated_data:
-            entry.updated = datetime.fromtimestamp(mktime(updated_data))
+            entry.updated = feed_date_to_datetime(updated_data)
 
         entry.save()
         return entry
