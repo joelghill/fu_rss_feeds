@@ -16,12 +16,12 @@ class FeedImage(models.Model):
     """ Model used to describe an image for a feed
     """
     # Alt attribute
-    title = models.CharField(max_length=200, blank=True)
+    title = models.CharField(max_length=200, blank=True, null=True)
     # Title attribute, rare
     description = models.TextField(blank=True, null=True)
 
     src = models.URLField(name='src', blank=True)
-    image_link = models.URLField(name='image_link', blank=True)
+    image_link = models.URLField(name='image_link')
 
     # Image properties
     width = models.IntegerField(editable=False)
@@ -47,6 +47,9 @@ class FeedImage(models.Model):
             height=feed_image.get('height', None))
 
         return image
+
+    def __str__(self):
+        return self.image_link
 
 
 class Feed(models.Model):
@@ -163,3 +166,6 @@ class Feed(models.Model):
                 break
             except ObjectDoesNotExist:
                 FeedEntry.from_parsed(self, raw_entry)
+
+    def __str__(self):
+        return f'{self.source}'

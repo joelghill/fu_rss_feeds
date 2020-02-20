@@ -7,3 +7,8 @@ class PenName(models.Model):
     """
     name = models.CharField(name="name", max_length=100, blank=False)
     email = models.EmailField(blank=True, null=True)
+
+    def __str__(self):
+        if self.name:
+            return self.name
+        return self.email
